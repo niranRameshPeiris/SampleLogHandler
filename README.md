@@ -4,10 +4,10 @@
 2. Open [APIT_HOME]/repository/conf/deployment.toml file and add the below configuration at the very top of the file. (Even before [server] tag)
 
 ```
-enabled_global_handlers= ["GlobalLogHandler","externalCallLogger","open_tracing"]
+enabled_global_handlers= ["SampleLogHandler","externalCallLogger","open_tracing"]
 [synapse_handlers]
-GlobalLogHandler.name= "GlobalLogHandler"
-GlobalLogHandler.class= "com.wso2.apim.log.handler.GlobalLogHandler"
+SampleLogHandler.name= "SampleLogHandler"
+SampleLogHandler.class= "com.wso2.apim.log.handler.SampleLogHandler"
 externalCallLogger.name= "externalCallLogger"
 externalCallLogger.class= "org.wso2.carbon.apimgt.gateway.handlers.LogsHandler"
 open_tracing.name= "open_tracing"
