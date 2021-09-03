@@ -9,6 +9,7 @@ public class SampleLogHandler extends AbstractSynapseHandler {
     Log log = LogFactory.getLog(SampleLogHandler.class);
 
     public SampleLogHandler() {
+
     }
 
     /**
@@ -16,14 +17,9 @@ public class SampleLogHandler extends AbstractSynapseHandler {
      * @return requext Inflow time
      */
     public boolean handleRequestInFlow(MessageContext messageContext) {
-
-
-        messageContext.setProperty("request.execution.start.time", Long.toString(System.currentTimeMillis()));
-
-        String apiMethod = LogUtils.getRestMethod(messageContext);
-
-        messageContext.setProperty("API_METHOD", apiMethod);
-
+        messageContext.setProperty(LogConstants.PROPERTY_REQUEST_EXECUTION_START_TIME, Long.toString(System.currentTimeMillis()));
+        String apiMethod = LogUtils.getInstance().getRestMethod(messageContext);
+        messageContext.setProperty(LogConstants.API_METHOD, apiMethod);
         return true;
     }
 
@@ -33,18 +29,13 @@ public class SampleLogHandler extends AbstractSynapseHandler {
      */
     public boolean handleRequestOutFlow(MessageContext messageContext) {
         try {
-
-            messageContext.setProperty("api.ut.log.backendRequestTime", Long.toString(System.currentTimeMillis()));
-
-            String apiTo = LogUtils.getTo(messageContext);
-
-            messageContext.setProperty("BACKEND_URL", apiTo);
-
+            messageContext.setProperty(LogConstants.PROPERTY_BACKEND_REQUEST_TIME, Long.toString(System.currentTimeMillis()));
+            String apiTo = LogUtils.getInstance().getTo(messageContext);
+            messageContext.setProperty(LogConstants.BACKEND_URL, apiTo);
             return true;
         } catch (Exception e) {
-            log.error("Cannot publish request event. " + e.getMessage(), e);
+            log.error("Cannot publish request event.", e);
         }
-
         return true;
     }
 
@@ -54,12 +45,10 @@ public class SampleLogHandler extends AbstractSynapseHandler {
      */
     public boolean handleResponseInFlow(MessageContext messageContext) {
         try {
-
-            messageContext.setProperty("api.ut.log.backendRequestEndTime", Long.toString(System.currentTimeMillis()));
-
+            messageContext.setProperty(LogConstants.PROPERTY_BACKEND_REQUEST_END_TIME, Long.toString(System.currentTimeMillis()));
             return true;
         } catch (Exception e) {
-            log.error("Cannot publish response event. " + e.getMessage(), e);
+            log.error("Cannot publish response event.", e);
         }
         return true;
     }
@@ -74,28 +63,26 @@ public class SampleLogHandler extends AbstractSynapseHandler {
             long requestOutTime = 0;
             long responseInTime = 0;
 
-            String inflowLatency = "-";
-            String outflowLatency = "-";
-            String backendLatency = "-";
-            String roundTripLatency = "-";
+            String inflowLatency = LogConstants.DEFAULT_STRING, outflowLatency = LogConstants.DEFAULT_STRING, backendLatency = LogConstants.DEFAULT_STRING, roundTripLatency = LogConstants.DEFAULT_STRING;
 
-            String apiMethod = (String) messageContext.getProperty("API_METHOD");
-            String apiName = LogUtils.getAPIName(messageContext);
-            String apiTo = (String) messageContext.getProperty("BACKEND_URL");
-            String apiFullRequestPath = (String) messageContext.getProperty("REST_FULL_REQUEST_PATH");
-            String apiResponseSC = LogUtils.getRestHttpResponseStatusCode(messageContext);
+            String apiMethod = (String) messageContext.getProperty(LogConstants.API_METHOD);
+            String apiName = LogUtils.getInstance().getAPIName(messageContext);
+            String apiTo = (String) messageContext.getProperty(LogConstants.BACKEND_URL);
+            String apiFullRequestPath = (String) messageContext.getProperty(LogConstants.REST_FULL_REQUEST_PATH);
+            int apiResponseSC = LogUtils.getInstance().getIntRestHttpResponseStatusCode(messageContext);
 
-            String requestInTimeValue = (String) messageContext.getProperty("request.execution.start.time");
-            String requestOutTimeValue = (String) messageContext.getProperty("api.ut.log.backendRequestTime");
-            String responseInTimeValue = (String) messageContext.getProperty("api.ut.log.backendRequestEndTime");
+            String requestInTimeValue = (String) messageContext.getProperty(LogConstants.PROPERTY_REQUEST_EXECUTION_START_TIME);
+            String requestOutTimeValue = (String) messageContext.getProperty(LogConstants.PROPERTY_BACKEND_REQUEST_TIME);
+            String responseInTimeValue = (String) messageContext.getProperty(LogConstants.PROPERTY_BACKEND_REQUEST_END_TIME);
+
             if (requestInTimeValue != null && !requestInTimeValue.isEmpty()) {
-                requestInTime = Long.parseLong((String) requestInTimeValue);
+                requestInTime = Long.parseLong(requestInTimeValue);
             }
             if (requestOutTimeValue != null && !requestOutTimeValue.isEmpty()) {
-                requestOutTime = Long.parseLong((String) requestOutTimeValue);
+                requestOutTime = Long.parseLong(requestOutTimeValue);
             }
             if (responseInTimeValue != null && !responseInTimeValue.isEmpty()) {
-                responseInTime = Long.parseLong((String) responseInTimeValue);
+                responseInTime = Long.parseLong(responseInTimeValue);
             }
 
             if (requestInTime <= requestOutTime && requestInTime != 0) {
@@ -111,15 +98,14 @@ public class SampleLogHandler extends AbstractSynapseHandler {
                 roundTripLatency = Long.toString(System.currentTimeMillis() - requestInTime);
             }
 
-
-            log.info("| API Name : " + apiName + "| API Method : " + apiMethod + "| API Request path : " + apiFullRequestPath + "| Remote Host : "
-                    + apiTo + "| Response status code : " + apiResponseSC + "| Inflow latency : " + inflowLatency + "| Backend latency : " + backendLatency
-                    + "| Outflow latency : " + outflowLatency + "| Round trip latency : " + roundTripLatency);
-
+            if (apiResponseSC >= 500 && apiResponseSC < 600) {
+                log.info("| API Name : " + apiName + "| API Method : " + apiMethod + "| API Request path : " + apiFullRequestPath + "| Remote Host : "
+                        + apiTo + "| Response status code : " + apiResponseSC + "| Inflow latency : " + inflowLatency + "| Backend latency : " + backendLatency
+                        + "| Outflow latency : " + outflowLatency + "| Round trip latency : " + roundTripLatency);
+            }
         } catch (Exception e) {
             log.error(e.getMessage());
         }
-
         return true;
     }
 }
