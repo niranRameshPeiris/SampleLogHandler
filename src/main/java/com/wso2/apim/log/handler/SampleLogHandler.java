@@ -98,11 +98,9 @@ public class SampleLogHandler extends AbstractSynapseHandler {
                 roundTripLatency = Long.toString(System.currentTimeMillis() - requestInTime);
             }
 
-            if (apiResponseSC >= 500 && apiResponseSC < 600) {
-                log.info("| API Name : " + apiName + "| API Method : " + apiMethod + "| API Request path : " + apiFullRequestPath + "| Remote Host : "
-                        + apiTo + "| Response status code : " + apiResponseSC + "| Inflow latency : " + inflowLatency + "| Backend latency : " + backendLatency
-                        + "| Outflow latency : " + outflowLatency + "| Round trip latency : " + roundTripLatency);
-            }
+            log.info("| API Name : " + apiName + "| API Method : " + apiMethod + "| API Request path : " + apiFullRequestPath + "| Remote Host : "
+                    + apiTo + "| Response status code : " + apiResponseSC + "| Inflow latency : " + inflowLatency + "| Backend latency : " + backendLatency
+                    + "| Outflow latency : " + outflowLatency + "| Round trip latency : " + roundTripLatency);
         } catch (Exception e) {
             log.error(e.getMessage());
         }
