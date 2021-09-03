@@ -3,26 +3,38 @@ package com.wso2.apim.log.handler;
 import org.apache.synapse.core.axis2.Axis2MessageContext;
 
 public class LogUtils {
-    LogUtils() {}
+    private static LogUtils instance;
 
-
-    protected static String getAPIName(org.apache.synapse.MessageContext messageContext) {
-        return (String)messageContext.getProperty("SYNAPSE_REST_API");
+    public static LogUtils getInstance() {
+        if (instance == null) {
+            instance = new LogUtils();
+        }
+        return instance;
     }
 
-    protected static String getRestMethod(org.apache.synapse.MessageContext messageContext) {
-        org.apache.axis2.context.MessageContext axis2MsgContext = ((Axis2MessageContext)messageContext)
+    protected String getAPIName(org.apache.synapse.MessageContext messageContext) {
+        return (String) messageContext.getProperty(LogConstants.SYNAPSE_REST_API);
+    }
+
+    protected String getRestMethod(org.apache.synapse.MessageContext messageContext) {
+        org.apache.axis2.context.MessageContext axis2MsgContext = ((Axis2MessageContext) messageContext)
                 .getAxis2MessageContext();
-        return (String)axis2MsgContext.getProperty("HTTP_METHOD");
+        return (String) axis2MsgContext.getProperty(LogConstants.HTTP_METHOD);
     }
 
-    protected static String getRestHttpResponseStatusCode(org.apache.synapse.MessageContext messageContext) {
-        org.apache.axis2.context.MessageContext axis2MsgContext = ((Axis2MessageContext)messageContext)
+    protected String getRestHttpResponseStatusCode(org.apache.synapse.MessageContext messageContext) {
+        org.apache.axis2.context.MessageContext axis2MsgContext = ((Axis2MessageContext) messageContext)
                 .getAxis2MessageContext();
-        return String.valueOf(axis2MsgContext.getProperty("HTTP_SC"));
+        return String.valueOf(axis2MsgContext.getProperty(LogConstants.HTTP_SC));
     }
 
-    protected static String getTo(org.apache.synapse.MessageContext messageContext) {
-        return (String)messageContext.getProperty("DYNAMIC_URL_VALUE");
+    protected int getIntRestHttpResponseStatusCode(org.apache.synapse.MessageContext messageContext) throws NumberFormatException {
+        org.apache.axis2.context.MessageContext axis2MsgContext = ((Axis2MessageContext) messageContext)
+                .getAxis2MessageContext();
+        return Integer.parseInt(String.valueOf(axis2MsgContext.getProperty(LogConstants.HTTP_SC)).trim());
+    }
+
+    protected String getTo(org.apache.synapse.MessageContext messageContext) {
+        return (String) messageContext.getProperty(LogConstants.DYNAMIC_URL_VALUE);
     }
 }
